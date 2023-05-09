@@ -9,15 +9,8 @@ Created on Fri Apr 21 09:01:07 2023
 import os
 import numpy as np
 
+import fonctions as fct
 
-#%% fonction pour savoir le nombre de jour d'un mois d'une annee  
-
-def nbjoursmois(m,a):
-    """Donne le nombre de jours du mois m de l'année a"""
-    nj = (0,31,28,31,30,31,30,31,31,30,31,30,31)[m]
-    if m==2 and ((a%4==0 and a%100!=0) or a%400==0): # m=février et a=bissextile?
-        return nj + 1
-    return nj
 
 #%% creation des dossiers mois et jours
 
@@ -41,7 +34,7 @@ for annee in liste_annees :
             print(mois)
             os.system('mkdir '+ main_path + '/' + annee + '/' + '0' + mois)
             chemin_mois = main_path + '/' + annee + '/' + '0' + mois + '/'
-            jour_mois = nbjoursmois(int(mois), int(annee))
+            jour_mois = fct.nbjoursmois(int(mois), int(annee))
         
             for jour in range(1,jour_mois+1):
                 if jour<10:
@@ -56,7 +49,7 @@ for annee in liste_annees :
              print(mois)
              os.system('mkdir '+ main_path + '/' + annee + '/' + mois)
              chemin_mois = main_path + '/' + annee + '/' + mois + '/'
-             jour_mois = nbjoursmois(int(mois), int(annee))
+             jour_mois = fct.nbjoursmois(int(mois), int(annee))
         
              for jour in range(1,jour_mois+1):
                 if jour<10:
@@ -68,7 +61,7 @@ for annee in liste_annees :
 
 #%% ranger les donnees par mois et jour
 chemin = '/cnrm/ville/USERS/doeuvrek/donnees/'
-annee_voulue = '2019'
+annee_voulue = '2018'
 liste_fichiers = os.listdir(chemin+annee_voulue) #attention les mois sont dedans aussi 04, 05...
 
 for fichier in liste_fichiers :
@@ -80,11 +73,10 @@ for fichier in liste_fichiers :
     
 #%% on veut verifier s'il y a des donnees manquantes (combien et ou)
 chemin = '/cnrm/ville/USERS/doeuvrek/donnees/'
-annee = '2019' #on choisit l'annee que l'on veut regarder
-
+annee = '2018' #on choisit l'annee que l'on veut regarder
 
 for mois in liste_mois :
-    jour_mois = nbjoursmois(int(mois), int(annee))
+    jour_mois = fct.nbjoursmois(int(mois), int(annee))
     if mois<10 :
         mois = str('0' + str(mois))
         for jour in range(1,jour_mois) :
