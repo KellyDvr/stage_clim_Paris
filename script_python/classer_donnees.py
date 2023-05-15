@@ -25,7 +25,7 @@ liste_annees = np.arange(ybeg, yend+1, step = 1)
 liste_mois = np.arange(mbeg, mend+1, step = 1)
 
 #%% suite section precedente
-for annee in liste_annees :
+for annee in 2010 : #liste_annees :
     annee = str(annee)
     
     for mois in liste_mois :
@@ -61,7 +61,7 @@ for annee in liste_annees :
 
 #%% ranger les donnees par mois et jour
 chemin = '/cnrm/ville/USERS/doeuvrek/donnees/'
-annee_voulue = '2018'
+annee_voulue = '2010'
 liste_fichiers = os.listdir(chemin+annee_voulue) #attention les mois sont dedans aussi 04, 05...
 
 for fichier in liste_fichiers :
@@ -73,55 +73,73 @@ for fichier in liste_fichiers :
     
 #%% on veut verifier s'il y a des donnees manquantes (combien et ou)
 chemin = '/cnrm/ville/USERS/doeuvrek/donnees/'
-annee = '2018' #on choisit l'annee que l'on veut regarder
+#annee = '2010' #on choisit l'annee que l'on veut regarder
 
-for mois in liste_mois :
-    jour_mois = fct.nbjoursmois(int(mois), int(annee))
-    if mois<10 :
-        mois = str('0' + str(mois))
-        for jour in range(1,jour_mois) :
-            #print(jour, type(jour))
-            if jour<10 :
-                jour = str('0' + str(jour))
-                nb_fichier = len(os.listdir(chemin+annee+'/' + mois + '/' + jour))
-                if nb_fichier == 96 :
-                    print('Pas de donnees manquantes pour le mois :' + str(mois) + ' et le jour :' + jour, '-- on a ' + str(nb_fichier) + ' fichiers')
-                else :
-                    nb_donnee_manquante = 96 - nb_fichier
-                    print('Il manque '+ str(nb_donnee_manquante) + ' fichiers pour le mois :' + str(mois) + '  et le jour :' + str(jour), '-- on a ' + str(nb_fichier) + 'fichiers')
-            else :
-                jour = str(jour)
-                nb_fichier = len(os.listdir(chemin+annee+'/' + mois + '/' + jour))
-                if nb_fichier == 96 :
-                    print('Pas de donnees manquantes pour le mois :' + mois + ' et le jour :' + jour, '-- on a ' + str(nb_fichier) + ' fichiers')
-                else :
-                    nb_donnee_manquante = 96 - nb_fichier
-                    print('Il manque '+ str(nb_donnee_manquante) + ' fichiers pour le mois :' + str(mois) + ' et le jour :' + str(jour), '-- on a ' + str(nb_fichier) + ' fichiers')
-    else :
-        if mois == 11 :
-            print('Mois de novembre une donnee seulement')
-        else :
-            mois = str(mois)
-            for jour in range(1,jour_mois) :
+liste_annee = np.arange(2010, 2022, 1)
+liste_mois = np.arange(4, 12, step = 1)
+
+manque = 0
+
+for annee in liste_annee :
+    annee = str(annee)
+    for mois in liste_mois :
+        jour_mois = fct.nbjoursmois(int(mois), int(annee))
+        if mois<10 :
+            mois = str('0' + str(mois))
+            for jour in range(1,jour_mois+1) :
+                #print(jour, type(jour))
                 if jour<10 :
                     jour = str('0' + str(jour))
                     nb_fichier = len(os.listdir(chemin+annee+'/' + mois + '/' + jour))
                     if nb_fichier == 96 :
-                        print('Pas de donnees manquantes pour le mois :' + str(mois) + ' et le jour :' + str(jour), '-- on a ' + str(nb_fichier) + 'fichiers')
+                        print('Pas de donnees manquantes pour le mois :' + str(mois) + ' et le jour :' + jour, '-- on a ' + str(nb_fichier) + ' fichiers')
                     else :
                         nb_donnee_manquante = 96 - nb_fichier
-                        print('Il manque '+ str(nb_donnee_manquante) + ' fichiers pour le mois :' + str(mois) + ' et le jour :'+str(jour), '-- on a ' + str(nb_fichier) + ' fichiers')
+                        print('Il manque '+ str(nb_donnee_manquante) + ' fichiers pour le mois :' + str(mois) + '  et le jour :' + str(jour), '-- on a ' + str(nb_fichier) + 'fichiers')
                 else :
                     jour = str(jour)
                     nb_fichier = len(os.listdir(chemin+annee+'/' + mois + '/' + jour))
                     if nb_fichier == 96 :
-                        print('Pas de donnees manquantes pour le mois :' + str(mois) + ' et le jour :' + str(jour), '-- on a ' + str(nb_fichier) + ' fichiers')
+                        print('Pas de donnees manquantes pour le mois :' + mois + ' et le jour :' + jour, '-- on a ' + str(nb_fichier) + ' fichiers')
                     else :
                         nb_donnee_manquante = 96 - nb_fichier
                         print('Il manque '+ str(nb_donnee_manquante) + ' fichiers pour le mois :' + str(mois) + ' et le jour :' + str(jour), '-- on a ' + str(nb_fichier) + ' fichiers')
+            manque = manque + nb_donnee_manquante
+        else :
+            if mois == 11 :
+                print('Mois de novembre une donnee seulement')
+            else :
+                mois = str(mois)
+                for jour in range(1,jour_mois+1) :
+                    if jour<10 :
+                        jour = str('0' + str(jour))
+                        nb_fichier = len(os.listdir(chemin+annee+'/' + mois + '/' + jour))
+                        if nb_fichier == 96 :
+                            print('Pas de donnees manquantes pour le mois :' + str(mois) + ' et le jour :' + str(jour), '-- on a ' + str(nb_fichier) + 'fichiers')
+                        else :
+                            nb_donnee_manquante = 96 - nb_fichier
+                            print('Il manque '+ str(nb_donnee_manquante) + ' fichiers pour le mois :' + str(mois) + ' et le jour :'+str(jour), '-- on a ' + str(nb_fichier) + ' fichiers')
+                    else :
+                        jour = str(jour)
+                        nb_fichier = len(os.listdir(chemin+annee+'/' + mois + '/' + jour))
+                        if nb_fichier == 96 :
+                            print('Pas de donnees manquantes pour le mois :' + str(mois) + ' et le jour :' + str(jour), '-- on a ' + str(nb_fichier) + ' fichiers')
+                        else :
+                            nb_donnee_manquante = 96 - nb_fichier
+                            print('Il manque '+ str(nb_donnee_manquante) + ' fichiers pour le mois :' + str(mois) + ' et le jour :' + str(jour), '-- on a ' + str(nb_fichier) + ' fichiers')
+                manque = manque + nb_donnee_manquante
+    print(annee)
     
-print(annee)
-    
+#%% on veut compter combien on a de donnees et combien sont manquantes
+chemin = '/cnrm/ville/USERS/doeuvrek/donnees/'
+
+liste_annee = np.arange(2010, 2022, 1)
+liste_mois = np.arange('mbeg', 12, step = 1)
+
+for annee in liste_annee :
+    for mois in liste_mois :
+        jour_mois = fct.nbjoursmois(int(mois), int(annee))
+
     
     
     
