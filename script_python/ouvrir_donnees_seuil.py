@@ -21,25 +21,27 @@ import time
 
 seuil = 0 #necessaire pour utiliser la fonction fctt.trace
 
-ybeg,mbeg,dbeg,hbeg,minbeg=2017,7,9,19,30
+ybeg,mbeg,dbeg,hbeg,minbeg=2017,7,9,20,0
 datefile = datetime.datetime(ybeg,mbeg,dbeg,hbeg,minbeg)
 date = datefile.strftime('%Y%m%d%H%M')
 print(date)
 
-
 latitudes, longitudes, values = fct.valeur(date)
 print(values)
-fctt.trace(date, date , longitudes, latitudes, values, seuil, 'val', 2017)
+
+liste_val = values.tolist()
+
+#fctt.trace(date, date , longitudes, latitudes, values, seuil, 'val', 2017, 'av')
 
 n = 38148 #on recupere la longueur des latitudes (meme que celle des donnees)
 #%% on veut garder les latitudes et longitudes des donnees superieures a un seuil pour un instant
 #(pour pouvoir les tracer, on pourrait surement garder juste la position dans le tableau longitude/latitude pour optimiser mémoire)
 seuil = 40 #en dBZ
 
-latitudes_seuil, longitudes_seuil, values_seuil, compteur = fct.seuil_instant(seuil, date, n, 4)
+values_seuil, compteur = fct.seuil_instant(seuil, date, n, 4)
         
-fctt.trace("201707091800", "201707091800", longitudes, latitudes, values_seuil, seuil, 'val')
-fctt.trace("201707091800", "201707091800", longitudes, latitudes, compteur, seuil,'compteur')
+fctt.trace("201707091800", "201707091800", longitudes, latitudes, values_seuil, seuil, 'val', '2017', 'juil')
+fctt.trace("201707091800", "201707091800", longitudes, latitudes, compteur, seuil,'compteur', '2017', 'juil')
 
 #%%on regarde les depassements de seuil sur une periode (quelques heures)
 seuil = 40
@@ -60,9 +62,9 @@ seuil = 40
 datedeb = '201707041500'
 datefin = '201707141515'
 
-tps1 = time.time()
+#tps1 = time.time()
 compteur_mois = fct.seuil_periode(seuil , datedeb, datefin, n, 1)
-tps2 = time.time()
+#tps2 = time.time()
 
 print('temps execution : ' + str(round(tps2-tps1, 2))) #attention unite
 
@@ -129,14 +131,18 @@ fctt.trace(datedeb, datefin, longitudes, latitudes, val_moy, 0, 'val')
 
 
 #%% compteur depassements par annee
-liste_annee = np.arange(2011, 2021, 1)
-seuil = 50 #45 40
+seuil = 45 #45 40
+n = 38148 
 
-#compteur_annee_40 = fct.compteur_seuil_annee(seuil, 2011, 2021, n)
+compteur_annee_45_max = fct.compteur_seuil_annee(seuil, 2021, 2021, n)
 #compteur_annee_45 = fct.compteur_seuil_annee(seuil, 2011, 2021, n)
-compteur_annee_50 = fct.compteur_seuil_annee(seuil, 2011, 2021, n)
+#compteur_annee_50 = fct.compteur_seuil_annee(seuil, 2011, 2021, n)
 
 #compteuranne40 = pd.DataFrame(compteur_annee_40, columns = ['2011', '2012', '2013', '2014', '2015', '2016', '2017', '2018','2019', '2020'])
+
+#%%plot depassement seuil sur une annee
+for i in np.arange(0,4,1):
+    fctt.trace(datedeb, datefin, longitudes, latitudes, compteur_annee_40_max[:,i], seuil, 'compteur', str(2011+i),' ')
 
 
 #%% plot des depassements par annee pour le seuil voulu 
@@ -145,9 +151,8 @@ datedeb = '201706010000'
 datefin = '201708312345' 
 seuil = 40
 
-for i in np.arange(0,10, 1) :
-    print(i+2011)
-    fctt.trace(datedeb, datefin, longitudes, latitudes, compteur_annee_40[:,i], seuil, 'compteur', str(i+2011))
+for i in np.arange(0,1, 1) :
+    fctt.trace(datedeb, datefin, longitudes, latitudes, compteur_annee21_40, seuil, 'compteur', str(2022),' ')
 
 #%%
 compteur_10ans = np.sum(compteur_annee_40, axis = 1) #on somme sur les colonnes
@@ -155,42 +160,29 @@ fctt.trace(datedeb, datefin, longitudes, latitudes, compteur_10ans, seuil, 'comp
 
 
 #%% compteur depassement sur un mois pour 10 ans
-liste_annee = np.arange(2010, 2022, 1)
+#liste_annee = np.arange(2010, 2022, 1)
 
 liste_mois = np.arange(4, 12, step = 1)
 #seuil = 50 A DEFINIR UNE SEULE FOIS DANS LA CONSOLE POUR NE PAS SE MELANGER LES PINCEAUX ENTRE LES DIFFERENTES CONSOLES
 
+anneedeb = 2017
+anneefin = 2018
+
 compteur_mois_40_10ans3 = np.zeros((n,8))
 
-for mois in liste_mois[0:2] :
-    for annee in liste_annee :
-        if mois < 10 :
-            nb_jours_mois = fct.nbjoursmois(mois, annee)
-            print(nb_jours_mois)
-            datedeb = str(annee)+'0'+str(mois)+'010000'
-            datefin = str(annee)+'0'+str(mois)+str(nb_jours_mois) +'2345'
-            print(datedeb)
-            print(datefin)
-        else :
-            nb_jours_mois = fct.nbjoursmois(mois, annee)
-            datedeb = str(annee)+str(mois)+'010000'
-            datefin = str(annee)+str(mois)+str(nb_jours_mois) +'2345'
-            print(datedeb)
-            print(datefin)
-            
-        compteur_temp = fct.seuil_periode(seuil , datedeb, datefin, n, 1)
-        
-        compteur_mois_40_10ans3[:,mois-4] = compteur_mois_40_10ans3[:,mois-4] + compteur_temp
+for mois in liste_mois[3:4] :
+    
+    compteur_mois_40_10ans3[:,mois-4] = fct.compteur_seuil_mois (seuil, mois, anneedeb, anneefin, n)
 
 #compteurmois40 = pd.DataFrame(compteur_mois_10, columns = ['avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre'])
 
 #%% on trace le compteur par mois
 liste_mois_nom = ['avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre']
-seuil = 40
+#seuil = 40
 for i in np.arange(0, 8, 1) :
-    fctt.trace(datedeb, datefin, longitudes, latitudes, compteur_mois_40_10ans[:, i], seuil, 'compteur', "10 ans", liste_mois_nom[i])
+    fctt.trace(datedeb, datefin, longitudes, latitudes, compteur_mois_40_10ans3[:, i], seuil, 'compteur', "10 ans", liste_mois_nom[i])
     #fctt.trace(datedeb, datefin, longitudes, latitudes, compteur_mois_45_10ans[:, i], seuil, 'compteur', "10 ans", liste_mois_nom[i])
-    #fctt.trace(datedeb, datefin, longitudes, latitudes, compteur_mois_50_10ans2[:, i], seuil, 'compteur', "10 ans", liste_mois_nom[i])
+    #fctt.trace(datedeb, datefin, longitudes, latitudes, compteur_mois_50_10ans3[:, i], seuil, 'compteur', "10 ans", liste_mois_nom[i])
 
 #%% moyenne depassement par mois
 liste_mois_nom = ['avril', 'mai', 'juin', 'juil', 'août', 'sep', 'oct', 'nov']
@@ -205,6 +197,7 @@ plt.title('Moyenne du nb de dépassements de par mois sur 10ans')
 plt.ylabel('nb de dépassements')
 plt.legend()
 
+#%% 
 
 
 

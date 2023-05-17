@@ -84,38 +84,44 @@ def valeur (date) :
     
     datadir = datefile.strftime('/cnrm/ville/USERS/doeuvrek/donnees/%Y/%m/%d/')
     
-    if ybeg <2018 :
+    seuil_annee = 2018
+    
+    if ybeg <seuil_annee :
         filename = datefile.strftime('%Y%m%d%H%M.text')
         date = datefile.strftime('%Y%m%d%H%M')
-        if os.path.exists(datadir+filename) :
+    else :
+        filename = datefile.strftime('%Y%m%d%H%M_DATA.text')
+        date = datefile.strftime('%Y%m%d%H%M')
+        
+    file_path = datadir + filename
+    
+    if os.path.exists(file_path) :
+        if ybeg<seuil_annee :
             data = pd.read_csv(datadir+filename, skiprows = 23, sep =" ", names = ['Latitudes', 'Longitudes', 'Valeurs min', 'Valeurs max'])
-            values_min = np.array(data['Valeurs min'])
+            """values_min = np.array(data['Valeurs min'])
             values_min[values_min==65535] = 0
             
             values_max = np.array(data['Valeurs max'])
             values_max[values_max==65535] = 0
-            values = (values_min + values_max)/2 #moyenne des valeurs min et max
+            values = (values_min + values_max)/2 #moyenne des valeurs min et max"""
+            values = np.array(data['Valeurs max'])
+            values[values==65535] = 0
             latitudes = np.array(data['Latitudes'])
             longitudes = np.array(data['Longitudes'])
-            return(latitudes, longitudes, values)
-        else :
-            print('le fichier voulu n\'existe pas le : ' + date)
-            return(0, 0, 0)
-    
-    elif ybeg >=2018 :
-        filename = datefile.strftime('%Y%m%d%H%M_DATA.text')
-        date = datefile.strftime('%Y%m%d%H%M')
-        if os.path.exists(datadir+filename) :
+        
+        else : 
             data = pd.read_csv(datadir+filename, skiprows = 25, sep =" ", names = ['Latitudes', 'Longitudes', 'Valeurs'])
             values = np.array(data['Valeurs'])
             values[values==-40] = 0
             values[values==-999] = 0
             latitudes = np.array(data['Latitudes'])
             longitudes = np.array(data['Longitudes'])
-            return(latitudes, longitudes, values)
-        else :
-            print('le fichier voulu n\'existe pas le : ' + date)
-            return(0, 0, 0)
+            
+        return(latitudes, longitudes, data)
+    
+    else :
+        print('le fichier voulu n\'existe pas le : ' + date)
+        return(0, 0, 0)
     
 
 
@@ -138,13 +144,7 @@ def seuil_instant (seuil, date, n, mode) :
         permet de choisir si on recupere juste le compteur ou aussi les valeurs de seuil et position
 
     Returns
-    -------
-    latitudes_seuil : float
-        vecteur des latitudes ou on a depasse le seuil
-    
-    longitudes_seuil : float
-        vecteur des longitudes ou on a depasse le seuil
-        
+    -------       
     values_seuil : float
         vecteurs des valeurs depassant le seuil 
     
@@ -154,45 +154,26 @@ def seuil_instant (seuil, date, n, mode) :
     """
     latitudes, longitudes, values = valeur(date)
     
-    if mode == 4 :
-        if type(latitudes) == int :
-            compteur = np.zeros(n)
-            print('erreur : le fichier n\'existe pas pour le :'+ date)
-            return(compteur)
-        
-        else :
-            #initialisation
-            latitudes_seuil = []
-            longitudes_seuil = []
-            values_seuil = []
-            compteur = np.zeros(len(latitudes)) #compteur du depassement de seuil (sans se soucier de la duree de l'orage)
-            
-            for i in range(len(values)) :
-                if values[i]>seuil :
-                    latitudes_seuil.append(latitudes[i])
-                    longitudes_seuil.append(longitudes[i])
-                    values_seuil.append(values[i])
-                    compteur[i] = compteur[i] + 1
-                else :
-                    latitudes_seuil.append(latitudes[i])
-                    longitudes_seuil.append(longitudes[i])
-                    values_seuil.append(0)
-            
-            return(latitudes_seuil, longitudes_seuil, values_seuil, compteur)
+    
+    if type(latitudes) == int :
+        compteur = np.zeros(n)
+        print('erreur : le fichier n\'existe pas pour le :'+ date)
+        return(compteur)
     
     else :
-        if type(latitudes) == int :
-            compteur = np.zeros(n)
-            print('erreur : le fichier n\'existe pas pour le :'+ date)
-            return(compteur)
+        #initialisation
+        values_seuil = []
+        compteur = np.zeros(len(latitudes)) #compteur du depassement de seuil (sans se soucier de la duree de l'orage)
         
+        if mode == 4 :        
+            compteur = (values>seuil).astype(int)
+            values_seuil = compteur*values
+    
+            return(values_seuil, compteur)
+
         else :
-            compteur = (values>seuil) * 1
-            #initialisation
-            #compteur = np.zeros(n)
-            #for i in range(len(values)) :
-             #   if values[i]>seuil :
-              #      compteur[i] = compteur[i] + 1
+            compteur = (values>seuil).astype(int)
+
             return(compteur)
         
 
@@ -226,11 +207,9 @@ def seuil_periode (seuil, datedeb, datefin, n, mode) :
     
     #initialisation des sequences
     compteur_mois = np.zeros(n)
-    #print(len(compteur_mois))
     
     datefin = str2date(datefin) 
     date = str2date(datedeb)
-    #print(date, '----', datefin)
     
     while date <= datefin :
         
@@ -239,7 +218,7 @@ def seuil_periode (seuil, datedeb, datefin, n, mode) :
 
         compteur_instant = seuil_instant(seuil, date, n, mode)
        # print(len(compteur_instant))
-        compteur_mois = np.add(compteur_mois, compteur_instant)
+        compteur_mois += compteur_instant
         #date = str2date(dateint)
         date = str2date(date) + datetime.timedelta(minutes = 15)
     
@@ -254,7 +233,7 @@ def compteur_seuil_annee (seuil, anneedeb, anneefin, n) :
     Parameters
     ----------
     seuil : float
-        seuil de depassement souahité
+        seuil de depassement souahité en dBZ
         
     anneedeb : str (de longueur 4)
         annee de debut de la periode souhaite
@@ -272,19 +251,67 @@ def compteur_seuil_annee (seuil, anneedeb, anneefin, n) :
 
     """
 
-    liste_annee = np.arange(anneedeb, anneefin, 1)
+    liste_annee = np.arange(anneedeb, anneefin+1, 1)
 
-    compteur_annee = np.zeros((n,10))
+    compteur_annee = np.zeros(n)#,len(liste_annee)))
     
     for annee in liste_annee : 
         #print('------'+str(annee)+'------')
         datedeb = str(annee)+'04010000'
         datefin = str(annee)+'11010000' 
         
-        compteur_annee[:,annee-2011] = seuil_periode(seuil , datedeb, datefin, n, 1) #on choisit 1 comme mode par defaut
+        compteur_annee[:] = seuil_periode(seuil , datedeb, datefin, n, 1) #on choisit 1 comme mode par defaut
 
     return(compteur_annee)
 
+#compteur_annee[:,annee-anneedeb]
+
+def compteur_seuil_mois (seuil, mois, anneedeb, anneefin, n) :
+    """
+    Fonction comptant le nb de depassement de seuil sur un mois donne complet sur les annees anneedeb/anneefin
+
+    Parameters
+    ----------
+    seuil : float
+                seuil de depassement souahité en dBZ
+
+    mois : int
+        entre 4 et 11, mois ou l'on souhaite regarder les depassements
+        
+    anneedeb : int
+        entre 2010 et 2022, annee de depart ou l'on regarde les depassements
+        
+    anneefin : int
+         entre 2010 et 2022 et tel que anneefin>anneedeb, annee de depart ou l'on regarde les depassements
+         
+    n : int
+        taille des donnees
+
+    Returns
+    -------
+    compteur_mois : int
+        vecteur ou chaque entree correspond au nombre de fois ou on a depasse le seuil en une localisation (meme ordre que longitudes/latitudes)
+
+    """
+    liste_annee = np.arange(anneedeb, anneefin+1, 1) #+1 pour inclure l'annee de fin dans le compteur 
+    
+    compteur_mois = np.zeros(n)
+    
+    for annee in liste_annee :
+        if mois < 10 :
+            mois_str = '0'+str(mois)
+        else:
+            mois_str = str(mois)
+
+        nb_jours_mois = nbjoursmois(mois, annee)
+        datedeb = str(annee)+mois_str+'010000'
+        datefin = str(annee)+mois_str+str(nb_jours_mois) +'2345'
+            
+        compteur_temp = seuil_periode(seuil , datedeb, datefin, n, 1)
+
+        compteur_mois += compteur_temp
+
+    return(compteur_mois)
 
 
 
