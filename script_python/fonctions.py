@@ -98,14 +98,14 @@ def valeur (date) :
     if os.path.exists(file_path) :
         if ybeg<seuil_annee :
             data = pd.read_csv(datadir+filename, skiprows = 23, sep =" ", names = ['Latitudes', 'Longitudes', 'Valeurs min', 'Valeurs max'])
-            """values_min = np.array(data['Valeurs min'])
+            values_min = np.array(data['Valeurs min'])
             values_min[values_min==65535] = 0
             
             values_max = np.array(data['Valeurs max'])
             values_max[values_max==65535] = 0
-            values = (values_min + values_max)/2 #moyenne des valeurs min et max"""
-            values = np.array(data['Valeurs max'])
-            values[values==65535] = 0
+            values = (values_min + values_max)/2 #moyenne des valeurs min et max
+            #values = np.array(data['Valeurs max'])
+            #values[values==65535] = 0
             latitudes = np.array(data['Latitudes'])
             longitudes = np.array(data['Longitudes'])
         
@@ -117,7 +117,7 @@ def valeur (date) :
             latitudes = np.array(data['Latitudes'])
             longitudes = np.array(data['Longitudes'])
             
-        return(latitudes, longitudes, data)
+        return(latitudes, longitudes, values)
     
     else :
         print('le fichier voulu n\'existe pas le : ' + date)
@@ -177,7 +177,7 @@ def seuil_instant (seuil, date, n, mode) :
             return(compteur)
         
 
-
+ #datedeb.strftime('%Y%m%d%H%M')
 def seuil_periode (seuil, datedeb, datefin, n, mode) :
     """
     Fonction permettant de compter combien de fois on depasse un seuil sur une periode 
@@ -314,10 +314,79 @@ def compteur_seuil_mois (seuil, mois, anneedeb, anneefin, n) :
     return(compteur_mois)
 
 
+def compteur_zone (compteur, indice) :
+    """
+    La fonction permet de compteur le nombre de fois ou on a depasser un seuil à partir d'un vecteur 
+
+    Parameters
+    ----------
+    compteur : int
+        compteur des depassements sur le domaine entier pour une duree donnee et un seuil fixe
+    indice : float
+        vecteur des indices de position dans le sous domaine que l'on veut etudier
+
+    Returns
+    -------
+    compteur_zone : int
+        nombre de depassements totals sur la sous zone etudiee sans distinction geographique
+
+    """
+    
+    compteur_zone = np.sum(compteur[indice, :])
+    
+    return (compteur_zone)
 
 
 
+def compteur_2h(seuil, datedeb, datefin, n):
+    """
+    Fonction renvoyant le nombre de depassements du seuil voulu par tranche de 2h sur la période datedeb-datefin
 
+    Parameters
+    ----------
+    seuil : int
+        seuil de depassements voulu
+        
+    datedeb : str
+        date de debut de période
+        
+    datefin : str
+        date de fin de periode
+        
+    n : int
+        taille des donnees
+
+    Returns
+    -------
+    compteur_temp : int
+        matrice du nombre de depassements sur une période donne chaque colonne correspond a une periode de deux heures (00:00-01:45 coonne 1 puis 02:00-03:45 colonne 2, etc)
+
+    """
+    
+    compteur_temp = np.zeros((n,12))
+
+    delta = datetime.timedelta(minutes = 105)
+    
+    datetemp1 = str2date(datedeb)
+
+    i=0
+    while datetemp1 < str2date(datefin) :
+        #print('temp1')
+        #print(datetemp1)
+        datetemp2 = datetemp1 + delta
+        #print('temp2') 
+        #print(datetemp2)
+        
+        datetemp1str = datetemp1.strftime('%Y%m%d%H%M')
+        datetemp2str = datetemp2.strftime('%Y%m%d%H%M')
+    
+        compteur_temp[:,int(int(datetemp1.strftime('%H'))/2)] += seuil_periode(seuil , datetemp1str, datetemp2str, n, 1)
+        
+        datetemp1 = datetemp2 + datetime.timedelta(minutes = 15)
+        datetemp2 = datetemp1 + delta
+        i+=1
+    
+    return(compteur_temp)#, i)
 
 
 

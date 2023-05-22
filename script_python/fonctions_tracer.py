@@ -25,6 +25,13 @@ import fonctions as fct
 #on definit les bornes du domaines sur lesquelles seront trace toutes les courbes
 bounds = [0.97, 3.7, 47.95, 49.75]
 
+import os
+os.system('cd /mnt/nfs/d40/ville/USERS/doeuvrek/stage_clim_Paris/zonage')
+import fonctions_zonage as fc
+import metpy
+from metpy.units import units
+import sys
+
 #%%
     
 def trace (datedeb, datefin, longitudes, latitudes, values, seuil, mode, annee, mois) :
@@ -101,7 +108,7 @@ def trace (datedeb, datefin, longitudes, latitudes, values, seuil, mode, annee, 
     elif mode == 'compteur' :
         if datedeb!=datefin : #on trace combien de fois on a depasse le seuil sur la periode datedeb datefin
             print('4')
-            levels_reflectivite = np.arange(1,40,2)
+            levels_reflectivite = np.arange(100,400,20)
             #title = "Compteur de reflectivité > " + str(seuil) + "dBZ de \n"  + start_date.strftime('%Y-%m-%d - %H:%M UTC') + ' à ' + end_date.strftime('%Y-%m-%d - %H:%M UTC')
             title = "Compteur de reflectivité > " + str(seuil) + "dBZ  pour l'année " + annee #+ ' pour ' + mois 
             #title = "Compteur de reflectivité > " + str(seuil) + "dBZ sur " + annee
@@ -180,5 +187,121 @@ def trace (datedeb, datefin, longitudes, latitudes, values, seuil, mode, annee, 
     
     
     
+def zonage (secteur,ut_final,  vt_final) :
 
- 
+    lat_centre = 48.853
+    lon_centre = 2.35
+    zoom=False
+    
+    #données de vent (U vent zonal et V vent meridien) pour determiner la direction du vent et la direction des secteurs ensuite
+    #ut_final = -0.3
+    #vt_final= 1
+    
+    ybeg,mbeg,dbeg,hbeg,minbeg=2017,7,9,17,0
+    start_date=datetime.datetime(ybeg,mbeg,dbeg,hbeg,minbeg)
+    
+    currentdate = start_date
+    
+    #on défini la liste des angles pour former notre demi-cercle en fonction du secteur voulu (upwind ou downwind)
+    
+    if secteur == 'D':
+        angle_initial = metpy.calc.wind_direction(ut_final*units('m/s'), vt_final*units('m/s'), convention='to').magnitude
+    elif secteur == 'DL':
+        angle_initial = metpy.calc.wind_direction(ut_final*units('m/s'), vt_final*units('m/s'), convention='to').magnitude - 60
+    elif secteur == 'DR':
+        angle_initial = metpy.calc.wind_direction(ut_final*units('m/s'), vt_final*units('m/s'), convention='to').magnitude + 60
+    elif secteur == 'U':
+        angle_initial = metpy.calc.wind_direction(ut_final*units('m/s'), vt_final*units('m/s'), convention='to').magnitude + 180.
+    elif secteur == 'UL':
+        angle_initial = metpy.calc.wind_direction(ut_final*units('m/s'), vt_final*units('m/s'), convention='to').magnitude + 180. + 60
+    elif secteur == 'UR':
+        angle_initial = metpy.calc.wind_direction(ut_final*units('m/s'), vt_final*units('m/s'), convention='to').magnitude + 180. - 60
+    elif secteur == 'C':
+        angle_initial = 0
+   
+    latitudes, longitudes, values = fct.valeur(currentdate.strftime('%Y%m%d%H%M'))
+    
+    #distinction entre cercle et autres secteurs : 
+    if secteur == 'C':
+        indices_secteur = fc.extract_data_polygon(values, longitudes, latitudes, angle_initial-180, angle_initial+180, secteur, lat_centre, lon_centre)
+    else:
+        indices_secteur = fc.extract_data_polygon(values, longitudes, latitudes, angle_initial-30, angle_initial+30, secteur, lat_centre, lon_centre)    
+   
+    
+    values_sector = values[indices_secteur]
+    longitudes_sector = longitudes[indices_secteur]
+    latitudes_sector = latitudes[indices_secteur]
+    
+    print('tracer cartes')
+    fig = plt.figure(figsize=(8,8))
+    ax = fig.add_subplot(1, 1, 1, projection=ccrs.Mercator())
+    
+    
+    
+    if zoom == False:
+       zoom_Paris = 0.8
+    else:
+       zoom_Paris = 0.5 #0.5
+    
+    
+    lat_min, lat_max = lat_centre-1.7*zoom_Paris, lat_centre+1.7*zoom_Paris   #lat_paris-1.7*zoom_Paris, lat_paris+1.7*zoom_Paris
+    lon_min, lon_max = lon_centre-2.15*zoom_Paris, lon_centre+2.15*zoom_Paris #lon_paris-2.15*zoom_Paris, lon_paris+2.15*zoom_Paris
+    bounds = [lon_min, lon_max, lat_min, lat_max]
+    
+    ax.set_extent(bounds)
+    
+    
+    titre = 'Variable in sector '+ secteur + '\n'
+    plt.title(titre, loc='center', size = 19)
+    
+    departements = gpd.read_file('/home/doeuvrek/Documents/ouverture_donnees/departements.geojson')
+    metropole = gpd.read_file('/home/doeuvrek/Documents/ouverture_donnees/metropole-version-simplifiee.geojson')
+
+    
+    #plt.legend(loc='upper left',fontsize = 14)
+    
+    ax.add_geometries(departements.geometry, crs = ccrs.PlateCarree(), facecolor='none', edgecolor='black',linewidth=1)
+    ax.add_geometries(metropole.geometry, crs = ccrs.PlateCarree(), facecolor='none', edgecolor='black',linewidth=1)
+    ax.scatter(list(longitudes_sector), list(latitudes_sector),c=values_sector, cmap='jet', vmin=1, vmax=10, transform=ccrs.PlateCarree(), s = 5) #cordonnes de Paris centre
+    
+    return (indices_secteur)
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+     

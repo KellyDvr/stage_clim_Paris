@@ -27,11 +27,11 @@ date = datefile.strftime('%Y%m%d%H%M')
 print(date)
 
 latitudes, longitudes, values = fct.valeur(date)
-print(values)
+#print(values)
 
-liste_val = values.tolist()
+#liste_val = values.tolist()
 
-#fctt.trace(date, date , longitudes, latitudes, values, seuil, 'val', 2017, 'av')
+fctt.trace(date, date , longitudes, latitudes, values, seuil, 'val', 2017, 'av')
 
 n = 38148 #on recupere la longueur des latitudes (meme que celle des donnees)
 #%% on veut garder les latitudes et longitudes des donnees superieures a un seuil pour un instant
@@ -66,7 +66,7 @@ datefin = '201707141515'
 compteur_mois = fct.seuil_periode(seuil , datedeb, datefin, n, 1)
 #tps2 = time.time()
 
-print('temps execution : ' + str(round(tps2-tps1, 2))) #attention unite
+#print('temps execution : ' + str(round(tps2-tps1, 2))) #attention unite
 
 #tracer du nb de fois ou on depasse le seuil 
 fctt.trace(datedeb, datefin, longitudes, latitudes, compteur_mois, seuil, 'compteur', '2017', 'av')
@@ -103,47 +103,13 @@ print('temps execution : ' + str(round(tps2-tps1, 2)) + "s") #attention unite
 fctt.trace(datedeb, datefin, longitudes, latitudes, compteur_annee, seuil, 'compteur')
 
 
-#%% moyenne des reflectivites sur JJA 2017
-
-datedeb = '201706010000'
-datefin = '201708312345' 
-
-date = fct.str2date(datedeb)
-#print(datedeb)
-
-datefin = fct.str2date(datefin)
-valeurs = np.zeros(n)
-i = 0
-n = 38148
-while date <= datefin :
-    date = date.strftime('%Y%m%d%H%M')
-    latitudes, longitudes, values = fct.valeur(date)
-    valeurs = valeurs + values 
-    i = i + 1
-    date = fct.str2date(date) + datetime.timedelta(minutes = 15)
-    print(date, i)
-
-datefin = '201708312345' 
-
-val_moy = valeurs/i #on divise par le nombre d'iterations
-
-fctt.trace(datedeb, datefin, longitudes, latitudes, val_moy, 0, 'val')
-
-
 #%% compteur depassements par annee
-seuil = 45 #45 40
+seuil = 50 #45 40
 n = 38148 
 
-compteur_annee_45_max = fct.compteur_seuil_annee(seuil, 2021, 2021, n)
-#compteur_annee_45 = fct.compteur_seuil_annee(seuil, 2011, 2021, n)
-#compteur_annee_50 = fct.compteur_seuil_annee(seuil, 2011, 2021, n)
+compteur_annee22_50 = fct.compteur_seuil_annee(seuil, 2022, 2022, n)
 
 #compteuranne40 = pd.DataFrame(compteur_annee_40, columns = ['2011', '2012', '2013', '2014', '2015', '2016', '2017', '2018','2019', '2020'])
-
-#%%plot depassement seuil sur une annee
-for i in np.arange(0,4,1):
-    fctt.trace(datedeb, datefin, longitudes, latitudes, compteur_annee_40_max[:,i], seuil, 'compteur', str(2011+i),' ')
-
 
 #%% plot des depassements par annee pour le seuil voulu 
 #attention à l'echelle du nb de depassements dans la fonction
@@ -154,9 +120,9 @@ seuil = 40
 for i in np.arange(0,1, 1) :
     fctt.trace(datedeb, datefin, longitudes, latitudes, compteur_annee21_40, seuil, 'compteur', str(2022),' ')
 
-#%%
-compteur_10ans = np.sum(compteur_annee_40, axis = 1) #on somme sur les colonnes
-fctt.trace(datedeb, datefin, longitudes, latitudes, compteur_10ans, seuil, 'compteur', "10 ans")
+#%% on trace les depassements pour un seuil fixe sur une periode de 10ans
+compteur_13ans = np.sum(compteur_annee_de_2010_a_2022_40, axis = 1) #on somme sur les colonnes
+fctt.trace(datedeb, datefin, longitudes, latitudes, compteur_13ans, seuil, 'compteur', "10 ans", " ")
 
 
 #%% compteur depassement sur un mois pour 10 ans
@@ -181,8 +147,27 @@ liste_mois_nom = ['avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octo
 #seuil = 40
 for i in np.arange(0, 8, 1) :
     fctt.trace(datedeb, datefin, longitudes, latitudes, compteur_mois_40_10ans3[:, i], seuil, 'compteur', "10 ans", liste_mois_nom[i])
-    #fctt.trace(datedeb, datefin, longitudes, latitudes, compteur_mois_45_10ans[:, i], seuil, 'compteur', "10 ans", liste_mois_nom[i])
-    #fctt.trace(datedeb, datefin, longitudes, latitudes, compteur_mois_50_10ans3[:, i], seuil, 'compteur', "10 ans", liste_mois_nom[i])
+
+#%% compteur de depassements par periode de 2h
+datedeb = '201707090000'
+datefin = '201708100000'
+
+liste_annee = np.arange(2010, 2022+1)
+
+compteur_heures = np.zeros((len(liste_annee), 12))
+
+for annee in  liste_annee :
+    datedeb = str(annee)+'04010000'
+    datefin = str(annee)+'11010000'
+    compteur_temp = fct.compteur_2h(40, datedeb, datefin, n)
+    compteur_heures[annee-2010,:] = np.sum(compteur_temp, axis = 0)
+
+#%%
+plt.bar(['<2','<4','<6','<8','<10','<12','<14','<16','<18','<20', '<22', '<24'], np.sum(compteur_heures, axis = 0))
+plt.xlabel('heures')
+plt.ylabel('nb de dépassements')
+plt.title('depassements pour des plages de 2h')
+
 
 #%% moyenne depassement par mois
 liste_mois_nom = ['avril', 'mai', 'juin', 'juil', 'août', 'sep', 'oct', 'nov']
@@ -197,14 +182,44 @@ plt.title('Moyenne du nb de dépassements de par mois sur 10ans')
 plt.ylabel('nb de dépassements')
 plt.legend()
 
-#%% 
 
+#%% on recupere le secteur downwind
+ut_final = 1
+vt_final= -0.3
 
+indices_secteur_down = fctt.zonage('DL', ut_final, vt_final)
+#%% on recupere le secteur ville
 
+ut_final = 1
+vt_final= -1
+indices_secteur_ville = fctt.zonage('C', ut_final, vt_final)
 
+#%% on recupere le secteur up wind 
+ut_final = -0.3
+vt_final= 1
 
+indices_secteur_up = fctt.zonage('UL', ut_final, vt_final)
 
+#%% on regarde up/ville/down statique
+compteur_up_10ans_40 = fct.compteur_zone(compteur_annee_de_2010_a_2022_40, indices_secteur_up)
+compteur_ville_10ans_40 = fct.compteur_zone(compteur_annee_de_2010_a_2022_40, indices_secteur_ville)
+compteur_down_10ans_40 = fct.compteur_zone(compteur_annee_de_2010_a_2022_40, indices_secteur_down)
 
+compteur_up_10ans_45 = fct.compteur_zone(compteur_annee_de_2010_a_2022_45, indices_secteur_up)
+compteur_ville_10ans_45 = fct.compteur_zone(compteur_annee_de_2010_a_2022_45, indices_secteur_ville)
+compteur_down_10ans_45 = fct.compteur_zone(compteur_annee_de_2010_a_2022_45, indices_secteur_down)
+
+compteur_up_10ans_50 = fct.compteur_zone(compteur_annee_de_2010_a_2022_50, indices_secteur_up)
+compteur_ville_10ans_50 = fct.compteur_zone(compteur_annee_de_2010_a_2022_50, indices_secteur_ville)
+compteur_down_10ans_50 = fct.compteur_zone(compteur_annee_de_2010_a_2022_50, indices_secteur_down)
+
+plt.bar(['up', 'ville', 'down'], [compteur_up_10ans_40, compteur_ville_10ans_40, compteur_down_10ans_40], label = '40 dBZ')
+plt.bar(['up', 'ville', 'down'], [compteur_up_10ans_45, compteur_ville_10ans_45, compteur_down_10ans_45], label = '45 dBZ')
+plt.bar(['up', 'ville', 'down'], [compteur_up_10ans_50, compteur_ville_10ans_50, compteur_down_10ans_50], label = '50 dBZ')
+plt.title('nombre de dépassements par zones sur 2010-2022')
+plt.xlabel('zones geographiques')
+plt.ylabel('nb de depassements')
+plt.legend()
 
 
 
