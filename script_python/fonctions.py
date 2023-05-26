@@ -106,22 +106,23 @@ def valeur (date) :
             values = (values_min + values_max)/2 #moyenne des valeurs min et max
             #values = np.array(data['Valeurs max'])
             #values[values==65535] = 0
-            latitudes = np.array(data['Latitudes'])
-            longitudes = np.array(data['Longitudes'])
+            """latitudes = np.array(data['Latitudes'])
+            longitudes = np.array(data['Longitudes'])"""
         
         else : 
             data = pd.read_csv(datadir+filename, skiprows = 25, sep =" ", names = ['Latitudes', 'Longitudes', 'Valeurs'])
             values = np.array(data['Valeurs'])
             values[values==-40] = 0
             values[values==-999] = 0
-            latitudes = np.array(data['Latitudes'])
-            longitudes = np.array(data['Longitudes'])
+            """latitudes = np.array(data['Latitudes'])
+            longitudes = np.array(data['Longitudes'])"""
             
-        return(latitudes, longitudes, values)
+        return(values) #latitudes, longitudes, values)
     
     else :
         print('le fichier voulu n\'existe pas le : ' + date)
-        return(0, 0, 0)
+        #return(0, 0, 0)
+        return(np.zeros(38148))
     
 
 

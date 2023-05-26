@@ -108,13 +108,22 @@ def trace (datedeb, datefin, longitudes, latitudes, values, seuil, mode, annee, 
     elif mode == 'compteur' :
         if datedeb!=datefin : #on trace combien de fois on a depasse le seuil sur la periode datedeb datefin
             print('4')
-            levels_reflectivite = np.arange(100,400,20)
-            #title = "Compteur de reflectivité > " + str(seuil) + "dBZ de \n"  + start_date.strftime('%Y-%m-%d - %H:%M UTC') + ' à ' + end_date.strftime('%Y-%m-%d - %H:%M UTC')
-            title = "Compteur de reflectivité > " + str(seuil) + "dBZ  pour l'année " + annee #+ ' pour ' + mois 
-            #title = "Compteur de reflectivité > " + str(seuil) + "dBZ sur " + annee
-            #img="/cnrm/ville/USERS/doeuvrek/script_python/figures/reflectivite_compteur_seuil_"+str(seuil)+'_periode_de_'+datedeb+ "_a_"+datefin+".png"   #nom et chemin pour sauvegarder l'image
-            img="/cnrm/ville/USERS/doeuvrek/stage_clim_Paris/script_python/figures/compteur_annee/seuil_40/compteur_reflectivite_max_"+str(seuil)+'_'+str(annee)+'_echelle3.png' #_10ans_' + str(mois)+'_zoom.png'#+ mois +'.png'
-            unite='nb de depassements'
+            if mois == 'petit' :
+                levels_reflectivite = np.arange(1,40,2)
+                #title = "Compteur de reflectivité > " + str(seuil) + "dBZ de \n"  + start_date.strftime('%Y-%m-%d - %H:%M UTC') + ' à ' + end_date.strftime('%Y-%m-%d - %H:%M UTC')
+                title = "Compteur de reflectivité > " + str(seuil) + "dBZ  pour l'année " + annee #+ ' pour ' + mois 
+                #title = "Compteur de reflectivité > " + str(seuil) + "dBZ sur " + annee
+                #img="/cnrm/ville/USERS/doeuvrek/script_python/figures/reflectivite_compteur_seuil_"+str(seuil)+'_periode_de_'+datedeb+ "_a_"+datefin+".png"   #nom et chemin pour sauvegarder l'image
+                img="/cnrm/ville/USERS/doeuvrek/stage_clim_Paris/script_python/figures/compteur_annee/seuil_40/compteur_reflectivite_40_"+str(annee)+"_new.png"#compteur_reflectivite_max_"+str(seuil)+'_'+str(annee)+'_echelle3.png' #_10ans_' + str(mois)+'_zoom.png'#+ mois +'.png'
+                unite='nb de depassements'
+            else :
+                levels_reflectivite = np.arange(0,104,4)
+                #title = "Compteur de reflectivité > " + str(seuil) + "dBZ de \n"  + start_date.strftime('%Y-%m-%d - %H:%M UTC') + ' à ' + end_date.strftime('%Y-%m-%d - %H:%M UTC')
+                title = "Compteur de reflectivité > " + str(seuil) + "dBZ  pour l'année " + annee #+ ' pour ' + mois 
+                #title = "Compteur de reflectivité > " + str(seuil) + "dBZ sur " + annee
+                #img="/cnrm/ville/USERS/doeuvrek/script_python/figures/reflectivite_compteur_seuil_"+str(seuil)+'_periode_de_'+datedeb+ "_a_"+datefin+".png"   #nom et chemin pour sauvegarder l'image
+                img="/cnrm/ville/USERS/doeuvrek/stage_clim_Paris/script_python/figures/compteur_annee/seuil_40/compteur_reflectivite_40_"+str(annee)+"_new_echelle2.png"#compteur_reflectivite_max_"+str(seuil)+'_'+str(annee)+'_echelle3.png' #_10ans_' + str(mois)+'_zoom.png'#+ mois +'.png'
+                unite='nb de depassements'
         else : #on trace combien de fois on a  depassesr le seuil en un instant
             print('5') 
             levels_reflectivite = np.arange(0,25,1) #np.arange(1, 51, 5) 
@@ -154,14 +163,16 @@ def trace (datedeb, datefin, longitudes, latitudes, values, seuil, mode, annee, 
  
     ax.set_title(title, loc='center', size = 18)
         
-    cf = ax.tricontourf(longitudes, latitudes, values, cmap=cmap, levels=levels, transform=ccrs.PlateCarree())
+    #cf = ax.tricontourf(longitudes, latitudes, values, cmap=cmap, levels=levels, transform=ccrs.PlateCarree())
+    cf = ax.contourf(longitudes, latitudes, values, cmap=cmap, levels=levels, transform=ccrs.PlateCarree())
+
     cb = fig.colorbar(cf, orientation='horizontal', aspect=70, shrink=0.48, pad=0.05,extendrect='True',extend='both',ticks=ticks)
     cb.set_label('('+unite+')', size=15, weight ="bold")
     cb.ax.tick_params(labelsize='medium')
     
     #permet de mettre d'une certaine couleur les valeurs depassant la palette de couleur
     cf.cmap.set_over('brown') 
-    cf.cmap.set_under('darkblue')
+    cf.cmap.set_under('pink')
     
     #cf.cmap.set_over('0.25')
     #cf.cmap.set_under('0.75')
@@ -176,14 +187,14 @@ def trace (datedeb, datefin, longitudes, latitudes, values, seuil, mode, annee, 
     #pour mettre la ville de Paris
     ax.scatter(2.35, 48.853, color='black', transform=ccrs.PlateCarree(), linewidths = 1.1) #cordonnes de Paris centre
     ax.text(2.348, 48.859, 'Paris', color='black', transform=ccrs.PlateCarree(), size = 22)
+
+    """plt.savefig(img)
     
-    #plt.savefig(img)
-    """
     im = Image.open(img)
     largeur, hauteur = im.size
-    im_crop = im.crop((largeur*0.28, hauteur*0.06,0.72*largeur, 0.82*hauteur))
+    im_crop = im.crop((largeur*0.28, hauteur*0.06, 0.745*largeur, 0.82*hauteur))
     im_crop.save(img)"""
-    
+
     
     
     

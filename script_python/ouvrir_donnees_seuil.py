@@ -21,17 +21,21 @@ import time
 
 seuil = 0 #necessaire pour utiliser la fonction fctt.trace
 
-ybeg,mbeg,dbeg,hbeg,minbeg=2017,7,9,20,0
+ybeg,mbeg,dbeg,hbeg,minbeg=2017,7,9,18,0
 datefile = datetime.datetime(ybeg,mbeg,dbeg,hbeg,minbeg)
 date = datefile.strftime('%Y%m%d%H%M')
 print(date)
 
-latitudes, longitudes, values = fct.valeur(date)
+#latitudes, longitudes, 
+values = fct.valeur(date)
 #print(values)
 
 #liste_val = values.tolist()
+# Pour avoir les lat et lon
+longitudes = np.load('/cnrm/ville/USERS/doeuvrek/stage_clim_Paris/script_python/donnees_python/longitudes.npy')
+latitudes = np.load('/cnrm/ville/USERS/doeuvrek/stage_clim_Paris/script_python/donnees_python/latitudes.npy')
 
-fctt.trace(date, date , longitudes, latitudes, values, seuil, 'val', 2017, 'av')
+fctt.trace(date, date , longitudes, latitudes, values, seuil, 'val', '2017', 'av')
 
 n = 38148 #on recupere la longueur des latitudes (meme que celle des donnees)
 #%% on veut garder les latitudes et longitudes des donnees superieures a un seuil pour un instant
@@ -166,7 +170,7 @@ for annee in  liste_annee :
 plt.bar(['<2','<4','<6','<8','<10','<12','<14','<16','<18','<20', '<22', '<24'], np.sum(compteur_heures, axis = 0))
 plt.xlabel('heures')
 plt.ylabel('nb de dépassements')
-plt.title('depassements pour des plages de 2h')
+plt.title('Dépassements de 2010 à 2022 pour des plages de 2h')
 
 
 #%% moyenne depassement par mois
